@@ -652,13 +652,13 @@ function filterCat(cat, btn) {
   if (cat === 'all') {
     const allActive = activeFilters.size === Object.keys(CAT_COLORS).length;
     if (allActive) {
-      // Deselect all
+      // Tutti attivi → pulisci tutto
       activeFilters.clear();
       Object.keys(CAT_COLORS).forEach(c => layerGroups[c].remove());
       document.querySelectorAll('.filter-btn:not(.all)').forEach(b => b.classList.remove('active'));
       btn.classList.remove('active');
     } else {
-      // Select all
+      // Attiva tutte le categorie
       Object.keys(CAT_COLORS).forEach(c => {
         activeFilters.add(c);
         layerGroups[c].addTo(map);
@@ -667,16 +667,17 @@ function filterCat(cat, btn) {
       btn.classList.add('active');
     }
   } else {
-    if (activeFilters.has(cat)) {
-      activeFilters.delete(cat);
-      btn.classList.remove('active');
-      layerGroups[cat].remove();
-    } else {
-      activeFilters.add(cat);
-      btn.classList.add('active');
-      layerGroups[cat].addTo(map);
-    }
-    syncAllBtn();
+    // Radio button: mostra solo questa categoria, nascondi le altre
+    Object.keys(CAT_COLORS).forEach(c => {
+      layerGroups[c].remove();
+      activeFilters.delete(c);
+    });
+    activeFilters.add(cat);
+    layerGroups[cat].addTo(map);
+    document.querySelectorAll('.filter-btn:not(.all)').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Deseleziona "Tutti"
+    document.querySelector('.filter-btn.all').classList.remove('active');
   }
   rebuildSidebar();
 }
