@@ -46,14 +46,15 @@
   header {
     background: var(--bg);
     border-bottom: 1px solid var(--border);
-    padding: 0 12px;
+    padding: 0 8px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    height: 46px;
+    gap: 10px;
+    height: 36px;
     flex-shrink: 0;
     position: relative;
     z-index: 1000;
+    overflow: hidden;
   }
 
   .brand {
@@ -70,25 +71,21 @@
   }
   .brand-city {
     font-family: 'Titillium Web', sans-serif;
-    font-size: 9px;
+    font-size: 7px;
     font-weight: 300;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.22em;
     color: #aaaaaa;
     text-transform: uppercase;
   }
   .brand-name {
     font-family: 'Titillium Web', sans-serif;
-    font-size: 22px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--cream);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
   }
   .brand-tagline {
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-top: 1px;
+    display: none;
   }
 
   /* FILTERS */
@@ -106,14 +103,14 @@
   .filter-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 6px 12px;
     border-radius: 20px;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--muted);
     font-family: 'Titillium Web', sans-serif;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.06em;
     cursor: pointer;
@@ -283,20 +280,22 @@
 
   /* footer */
   footer {
-    height: 18px;
+    height: 14px;
     background: var(--bg);
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 8px;
+    padding: 0 6px;
     flex-shrink: 0;
+    overflow: hidden;
   }
   footer span {
-    font-size: 8px;
-    line-height: 1;
+    display: block;
+    font-size: 7px;
+    line-height: 14px;
     color: var(--muted);
-    letter-spacing: 0.10em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
   footer span em { color: #cccccc; font-style: normal; }
@@ -398,7 +397,7 @@
 
 <header>
   <div class="brand">
-    <img id="hotel-logo" src="" alt="Hotel Londra Alessandria" style="height:30px;display:none;margin-right:8px;">
+    <img id="hotel-logo" src="" alt="Hotel Londra Alessandria" style="height:22px;display:none;margin-right:6px;">
     <div>
       <span class="brand-city">Alessandria</span>
       <span class="brand-name">GASTROMANIA!</span>
@@ -636,15 +635,10 @@ PLACES.forEach((p, i) => {
   const color = CAT_COLORS[p.cat];
   const marker = L.marker([p.lat, p.lng], { icon: makeIcon(color, p.cat) });
 
-  const descHtml = p.desc
-  ? `<div class="popup-desc"></div>`
-  : '';
-
   marker.bindPopup(`
     <div class="popup-inner">
       <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
       <div class="popup-name">${p.name}</div>
-      ${descHtml}
     </div>
   `, { maxWidth: 260, className: '' });
 
