@@ -12,13 +12,13 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=beta&libraries=places" async defer></script>
 <style>
   :root {
-    --bg: #0e0c09;
-    --surface: #1a1712;
-    --border: #2e2a22;
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --cream: #f0e6cc;
-    --muted: #7a7060;
+    --bg: #111111;
+    --surface: #1c1c1c;
+    --border: #2e2e2e;
+    --gold: #cccccc;
+    --gold-light: #e0e0e0;
+    --cream: #f0f0f0;
+    --muted: #888888;
 
     --ristoranti: #7bc8a4;
     --pizza: #f4907a;
@@ -33,7 +33,7 @@
 
   body {
     background: var(--bg);
-    color: #a09070;
+    color: #f0f0f0;
     font-family: 'Titillium Web', sans-serif;
     height: 100vh;
     display: flex;
@@ -72,7 +72,7 @@
     font-size: 9px;
     font-weight: 300;
     letter-spacing: 0.3em;
-    color: var(--gold);
+    color: #aaaaaa;
     text-transform: uppercase;
   }
   .brand-name {
@@ -132,8 +132,8 @@
   }
   .filter-btn:hover { opacity: 0.85; }
 
-  .filter-btn.all { color: var(--gold); }
-  .filter-btn.all.active { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+  .filter-btn.all { color: #cccccc; }
+  .filter-btn.all.active { border-color: #cccccc; background: rgba(255,255,255,0.06); }
 
   .count-badge {
     background: rgba(255,255,255,0.1);
@@ -174,7 +174,7 @@
   .sidebar-title {
     font-size: 10px;
     letter-spacing: 0.2em;
-    color: var(--gold);
+    color: #aaaaaa;
     text-transform: uppercase;
     font-weight: 500;
   }
@@ -203,7 +203,7 @@
     gap: 10px;
   }
   .place-item:hover { background: rgba(255,255,255,0.04); }
-  .place-item.highlighted { background: rgba(201,168,76,0.08); }
+  .place-item.highlighted { background: rgba(255,255,255,0.06); }
 
   .place-dot {
     width: 8px; height: 8px;
@@ -230,10 +230,10 @@
     font-family: 'Titillium Web', sans-serif !important;
   }
   .leaflet-popup-content-wrapper {
-    background: #3a3028 !important;
-    border: 1px solid var(--border) !important;
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
     border-radius: 8px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
     padding: 0 !important;
   }
   .leaflet-popup-content {
@@ -241,8 +241,8 @@
     width: auto !important;
     min-width: 180px;
   }
-  .leaflet-popup-tip { background: var(--surface) !important; }
-  .leaflet-popup-close-button { color: var(--muted) !important; top: 8px !important; right: 10px !important; font-size: 16px !important; }
+  .leaflet-popup-tip { background: #ffffff !important; }
+  .leaflet-popup-close-button { color: #888888 !important; top: 8px !important; right: 10px !important; font-size: 16px !important; }
 
   .popup-inner {
     padding: 14px 16px 12px;
@@ -258,7 +258,7 @@
     font-family: 'Titillium Web', sans-serif;
     font-size: 15px;
     font-weight: 700;
-    color: var(--cream);
+    color: #1a1a1a;
     line-height: 1.25;
     margin-bottom: 8px;
   }
@@ -268,8 +268,8 @@
     line-height: 1.5;
   }
   .popup-details { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-  .popup-row { font-size: 11px; color: var(--muted); line-height: 1.4; }
-  .popup-row a { color: var(--gold); text-decoration: none; }
+  .popup-row { font-size: 11px; color: #444444; line-height: 1.4; }
+  .popup-row a { color: #333333; text-decoration: none; }
   .popup-row a:hover { text-decoration: underline; }
   .popup-hours.open { color: #7bc8a4; }
   .popup-hours.closed { color: #f4907a; }
@@ -297,7 +297,7 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
-  footer span em { color: var(--gold); font-style: normal; }
+  footer span em { color: #cccccc; font-style: normal; }
   
   .leaflet-popup-content .material-symbols-rounded {
   font-family: 'Material Symbols Rounded' !important;
@@ -331,7 +331,7 @@
 
   <div class="filters" id="filters">
     <button class="filter-btn all active" data-cat="all" onclick="filterCat('all',this)">
-      <span class="dot" style="background:var(--gold)"></span>
+      <span class="dot" style="background:#cccccc"></span>
       Tutti / All <span class="count-badge" id="cnt-all">0</span>
     </button>
     <button class="filter-btn active" data-cat="RISTORANTI" onclick="filterCat('RISTORANTI',this)" style="color:var(--ristoranti)">
