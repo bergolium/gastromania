@@ -712,25 +712,25 @@ async function openPlacesPopup(marker, p) {
       return;
     }
     const place = places[0];
-    const addr = place.formattedAddress ? `<div class="popup-row">📍 ${place.formattedAddress.replace(', Italia','').replace(', Italy','')}</div>` : '';
-    const phone = place.nationalPhoneNumber ? `<div class="popup-row">📞 <a href="tel:${place.nationalPhoneNumber}">${place.nationalPhoneNumber}</a></div>` : '';
-    const web = place.websiteURI ? `<div class="popup-row">🌐 <a href="${place.websiteURI}" target="_blank">${new URL(place.websiteURI).hostname.replace('www.','')}</a></div>` : '';
-    const rating = place.rating ? `<div class="popup-row">⭐ ${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
-    let hours = '';
-    if (place.regularOpeningHours?.periods?.length) {
-      const now = new Date();
-      const day = now.getDay();
-      const time = now.getHours() * 100 + now.getMinutes();
-      let isOpen = false;
-      for (const period of place.regularOpeningHours.periods) {
-        if (period.open?.day === day) {
-          const o = period.open.hour * 100 + period.open.minute;
-          const c = period.close ? period.close.hour * 100 + period.close.minute : 2400;
-          if (time >= o && time <= c) { isOpen = true; break; }
-        }
-      }
-      hours = `<div class="popup-row popup-hours ${isOpen?'open':'closed'}">${isOpen?'🟢 Aperto ora':'🔴 Chiuso ora'}</div>`;
+const addr = place.formattedAddress ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span>${place.formattedAddress.replace(', Italia','').replace(', Italy','')}</div>` : '';
+const phone = place.nationalPhoneNumber ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">call</span><a href="tel:${place.nationalPhoneNumber}">${place.nationalPhoneNumber}</a></div>` : '';
+const web = place.websiteURI ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">language</span><a href="${place.websiteURI}" target="_blank">${new URL(place.websiteURI).hostname.replace('www.','')}</a></div>` : '';
+const rating = place.rating ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">star</span>${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
+let hours = '';
+if (place.regularOpeningHours?.periods?.length) {
+  const now = new Date();
+  const day = now.getDay();
+  const time = now.getHours() * 100 + now.getMinutes();
+  let isOpen = false;
+  for (const period of place.regularOpeningHours.periods) {
+    if (period.open?.day === day) {
+      const o = period.open.hour * 100 + period.open.minute;
+      const c = period.close ? period.close.hour * 100 + period.close.minute : 2400;
+      if (time >= o && time <= c) { isOpen = true; break; }
     }
+  }
+  hours = `<div class="popup-row popup-hours ${isOpen?'open':'closed'}"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">${isOpen?'check_circle':'cancel'}</span>${isOpen?'Aperto ora':'Chiuso ora'}</div>`;
+}
     marker.getPopup().setContent(`
       <div class="popup-inner">
         <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
