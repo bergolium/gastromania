@@ -85,7 +85,12 @@
     letter-spacing: 0.01em;
   }
   .brand-tagline {
-    display: none;
+    font-size: 6px;
+    color: var(--muted);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-top: 1px;
+    line-height: 1;
   }
 
   /* FILTERS */
@@ -351,13 +356,17 @@
       padding: 10px 12px 6px;
       gap: 8px;
     }
-    .brand-name { font-size: 18px; }
-    .brand-tagline { display: none; }
-    .filters {
-      width: 100%;
-      gap: 5px;
-      padding: 2px 0 4px;
-    }
+  .brand-name { font-size: 16px; }
+  .brand-tagline {
+    font-size: 6px;
+    display: block;
+    line-height: 1;
+  }
+  .filters {
+    width: 100%;
+    gap: 5px;
+    padding: 2px 0 2px;
+  }
     .filter-btn {
       font-size: 10px;
       padding: 5px 9px;
@@ -401,7 +410,7 @@
     <div>
       <span class="brand-city">Alessandria</span>
       <span class="brand-name">GASTROMANIA!</span>
-      <span class="brand-tagline">Where to eat and where to drink. According to us.</span>
+      <span class="brand-tagline">where to eat and where to drink. according to us.</span>
     </div>
   </div>
 
