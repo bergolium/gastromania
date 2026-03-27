@@ -594,7 +594,7 @@ function buildList(filter) {
       </div>
     `;
     item.addEventListener('click', () => {
-      map.setView([p.lat, p.lng], 17, {animate:true});
+      map.setView([p.lat, p.lng], 18, {animate:true});
       markers[globalIndex].marker.openPopup();
       highlightItem(globalIndex);
     });
