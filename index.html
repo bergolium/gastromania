@@ -688,10 +688,12 @@ function buildList(filter) {
       </div>
     `;
     item.addEventListener('click', () => {
-      map.setZoom(18);
-      map.panTo([p.lat - 0.0008, p.lng], {animate: true, duration: 0.5});
-      openPlacesPopup(markers[globalIndex].marker, PLACES[globalIndex])
       highlightItem(globalIndex);
+      const target = [p.lat - 0.0008, p.lng];
+      map.once('moveend', () => {
+        openPlacesPopup(markers[globalIndex].marker, PLACES[globalIndex]);
+      });
+      map.flyTo(target, 18, {animate: true, duration: 0.6});
     });
     list.appendChild(item);
     allItems.push(item);
