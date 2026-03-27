@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,1,0" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=beta&libraries=places" async defer></script>
 <style>
   :root {
     --bg: #0e0c09;
@@ -555,8 +556,8 @@ PLACES.forEach((p, i) => {
 
   marker.on('click', () => {
     highlightItem(i);
-    marker.openPopup();
-});
+    openPlacesPopup(marker, p);
+  });
   layerGroups[p.cat].addLayer(marker);
   markers.push({ marker, data: p, index: i });
 });
@@ -595,7 +596,7 @@ function buildList(filter) {
     `;
     item.addEventListener('click', () => {
       map.setView([p.lat, p.lng], 18, {animate:true});
-      markers[globalIndex].marker.openPopup();
+      openPlacesPopup(markers[globalIndex].marker, PLACES[globalIndex])
       highlightItem(globalIndex);
     });
     list.appendChild(item);
@@ -682,6 +683,70 @@ function filterCat(cat, btn) {
   rebuildSidebar();
 }
 
+async function openPlacesPopup(marker, p) {
+  const color = CAT_COLORS[p.cat];
+  marker.bindPopup(`
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+      <div class="popup-name">${p.name}</div>
+      <div class="popup-desc popup-loading">⏳ Caricamento...</div>
+    </div>
+  `, { maxWidth: 260 }).openPopup();
+
+  try {
+    await google.maps.importLibrary('places');
+    const { Place } = google.maps.places;
+    const request = {
+      textQuery: p.name + ' Alessandria Italia',
+      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount'],
+      locationBias: { lat: p.lat, lng: p.lng },
+      language: 'it',
+    };
+    const { places } = await Place.searchByText(request);
+    if (!places || places.length === 0) {
+      marker.getPopup().setContent(`
+        <div class="popup-inner">
+          <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+          <div class="popup-name">${p.name}</div>
+        </div>`);
+      return;
+    }
+    const place = places[0];
+    const addr = place.formattedAddress ? `<div class="popup-row">📍 ${place.formattedAddress.replace(', Italia','').replace(', Italy','')}</div>` : '';
+    const phone = place.nationalPhoneNumber ? `<div class="popup-row">📞 <a href="tel:${place.nationalPhoneNumber}">${place.nationalPhoneNumber}</a></div>` : '';
+    const web = place.websiteURI ? `<div class="popup-row">🌐 <a href="${place.websiteURI}" target="_blank">${new URL(place.websiteURI).hostname.replace('www.','')}</a></div>` : '';
+    const rating = place.rating ? `<div class="popup-row">⭐ ${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
+    let hours = '';
+    if (place.regularOpeningHours?.periods?.length) {
+      const now = new Date();
+      const day = now.getDay();
+      const time = now.getHours() * 100 + now.getMinutes();
+      let isOpen = false;
+      for (const period of place.regularOpeningHours.periods) {
+        if (period.open?.day === day) {
+          const o = period.open.hour * 100 + period.open.minute;
+          const c = period.close ? period.close.hour * 100 + period.close.minute : 2400;
+          if (time >= o && time <= c) { isOpen = true; break; }
+        }
+      }
+      hours = `<div class="popup-row popup-hours ${isOpen?'open':'closed'}">${isOpen?'🟢 Aperto ora':'🔴 Chiuso ora'}</div>`;
+    }
+    marker.getPopup().setContent(`
+      <div class="popup-inner">
+        <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+        <div class="popup-name">${p.name}</div>
+        <div class="popup-details">${rating}${hours}${addr}${phone}${web}</div>
+      </div>`);
+  } catch(e) {
+    console.error('Places error:', e);
+    marker.getPopup().setContent(`
+      <div class="popup-inner">
+        <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+        <div class="popup-name">${p.name}</div>
+      </div>`);
+  }
+}
+  
 const logoEl = document.getElementById('hotel-logo');
 logoEl.src = 'logo.png';
 logoEl.onload = () => { logoEl.style.display = 'block'; };
