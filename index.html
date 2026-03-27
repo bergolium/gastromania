@@ -175,7 +175,7 @@
     letter-spacing: 0.2em;
     color: var(--gold);
     text-transform: uppercase;
-    font-weight: 200;
+    font-weight: 500;
   }
   .sidebar-count {
     font-size: 11px;
@@ -359,7 +359,7 @@
 </div>
 
 <footer>
-  <span>© 2026 &nbsp;·&nbsp; <em>GASTROMANIA!</em> &nbsp;·&nbsp; bergolium 1071</span>
+  <span>© 2026 &nbsp;·&nbsp; <em>GASTROMANIA!</em> &nbsp;·&nbsp; bergolium1071</span>
 </footer>
 
 <script>
@@ -682,44 +682,24 @@ function filterCat(cat, btn) {
 }
 
 // ⚠️ INSERISCI QUI LA TUA API KEY GOOGLE
-const GOOGLE_API_KEY = 'AIzaSyAVaXNlbcghwlfGA5OLTdsLreTpch3xRlc';
+const GOOGLE_API_KEY = 'LA_TUA_API_KEY_QUI';
 
-// Google Places lookup
-function fetchPlaceDetails(placeName, lat, lng, popupEl) {
-  const url = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(placeName)}&inputtype=textquery&locationbias=point:${lat},${lng}&fields=place_id&key=${GOOGLE_API_KEY}`;
-  // Note: direct Places API calls from browser require proxy due to CORS.
-  // We use the Places JS library instead (loaded below).
-}
-
-// Load Google Maps JS API with Places library
+// Load Google Maps JS API with new Places library (v=beta)
 (function loadGoogleMaps() {
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initPlacesService`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&v=beta&libraries=places&callback=initGoogleMaps`;
   script.async = true;
   script.defer = true;
   document.head.appendChild(script);
 })();
 
-let placesService = null;
-function initPlacesService() {
-  // Create a dummy map element for PlacesService
-  const dummy = document.createElement('div');
-  const gmap = new google.maps.Map(dummy);
-  placesService = new google.maps.places.PlacesService(gmap);
+function initGoogleMaps() {
+  // Google Maps JS API loaded and ready
+  console.log('Google Maps Places API ready');
 }
 
-function openPlacesPopup(marker, p) {
+async function openPlacesPopup(marker, p) {
   const color = CAT_COLORS[p.cat];
-  if (!placesService) {
-    marker.bindPopup(`
-      <div class="popup-inner">
-        <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-        <div class="popup-name">${p.name}</div>
-        <div class="popup-desc">Caricamento info...</div>
-      </div>
-    `, { maxWidth: 260 }).openPopup();
-    return;
-  }
 
   // Show loading state immediately
   marker.bindPopup(`
@@ -730,14 +710,19 @@ function openPlacesPopup(marker, p) {
     </div>
   `, { maxWidth: 260 }).openPopup();
 
-  const request = {
-    query: p.name + ' Alessandria',
-    fields: ['place_id', 'name', 'formatted_address', 'formatted_phone_number', 'website', 'opening_hours', 'rating', 'user_ratings_total'],
-    locationBias: new google.maps.LatLng(p.lat, p.lng),
-  };
+  try {
+    const { Place } = await google.maps.importLibrary('places');
 
-  placesService.findPlaceFromQuery(request, (results, status) => {
-    if (status !== google.maps.places.PlacesServiceStatus.OK || !results[0]) {
+    const request = {
+      textQuery: p.name + ' Alessandria Italia',
+      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount'],
+      locationBias: { lat: p.lat, lng: p.lng },
+      language: 'it',
+    };
+
+    const { places } = await Place.searchByText(request);
+
+    if (!places || places.length === 0) {
       marker.getPopup().setContent(`
         <div class="popup-inner">
           <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
@@ -747,38 +732,53 @@ function openPlacesPopup(marker, p) {
       return;
     }
 
-    placesService.getDetails({
-      placeId: results[0].place_id,
-      fields: ['name','formatted_address','formatted_phone_number','website','opening_hours','rating','user_ratings_total']
-    }, (place, detailStatus) => {
-      if (detailStatus !== google.maps.places.PlacesServiceStatus.OK) return;
+    const place = places[0];
 
-      const addr = place.formatted_address
-        ? `<div class="popup-row">📍 ${place.formatted_address.replace(', Italia','').replace(', Italy','')}</div>` : '';
-      const phone = place.formatted_phone_number
-        ? `<div class="popup-row">📞 <a href="tel:${place.formatted_phone_number}">${place.formatted_phone_number}</a></div>` : '';
-      const web = place.website
-        ? `<div class="popup-row">🌐 <a href="${place.website}" target="_blank">${new URL(place.website).hostname.replace('www.','')}</a></div>` : '';
-      const rating = place.rating
-        ? `<div class="popup-row">⭐ ${place.rating} <span style="color:var(--muted)">(${place.user_ratings_total} recensioni)</span></div>` : '';
+    const addr = place.formattedAddress
+      ? `<div class="popup-row">📍 ${place.formattedAddress.replace(', Italia','').replace(', Italy','')}</div>` : '';
+    const phone = place.nationalPhoneNumber
+      ? `<div class="popup-row">📞 <a href="tel:${place.nationalPhoneNumber}">${place.nationalPhoneNumber}</a></div>` : '';
+    const web = place.websiteURI
+      ? `<div class="popup-row">🌐 <a href="${place.websiteURI}" target="_blank">${new URL(place.websiteURI).hostname.replace('www.','')}</a></div>` : '';
+    const rating = place.rating
+      ? `<div class="popup-row">⭐ ${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
 
-      let hours = '';
-      if (place.opening_hours) {
-        const isOpen = place.opening_hours.isOpen();
-        hours = `<div class="popup-row popup-hours ${isOpen ? 'open' : 'closed'}">${isOpen ? '🟢 Aperto ora' : '🔴 Chiuso ora'}</div>`;
+    let hours = '';
+    if (place.regularOpeningHours) {
+      const now = new Date();
+      const day = now.getDay();
+      const time = now.getHours() * 100 + now.getMinutes();
+      const periods = place.regularOpeningHours.periods || [];
+      let isOpen = false;
+      for (const period of periods) {
+        if (period.open && period.open.day === day) {
+          const openTime = period.open.hour * 100 + period.open.minute;
+          const closeTime = period.close ? period.close.hour * 100 + period.close.minute : 2400;
+          if (time >= openTime && time <= closeTime) { isOpen = true; break; }
+        }
       }
+      hours = `<div class="popup-row popup-hours ${isOpen ? 'open' : 'closed'}">${isOpen ? '🟢 Aperto ora' : '🔴 Chiuso ora'}</div>`;
+    }
 
-      marker.getPopup().setContent(`
-        <div class="popup-inner">
-          <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-          <div class="popup-name">${p.name}</div>
-          <div class="popup-details">
-            ${rating}${hours}${addr}${phone}${web}
-          </div>
+    marker.getPopup().setContent(`
+      <div class="popup-inner">
+        <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+        <div class="popup-name">${p.name}</div>
+        <div class="popup-details">
+          ${rating}${hours}${addr}${phone}${web}
         </div>
-      `);
-    });
-  });
+      </div>
+    `);
+
+  } catch(e) {
+    console.error('Places error:', e);
+    marker.getPopup().setContent(`
+      <div class="popup-inner">
+        <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+        <div class="popup-name">${p.name}</div>
+      </div>
+    `);
+  }
 }
 const logoEl = document.getElementById('hotel-logo');
 logoEl.src = 'logo.png';
