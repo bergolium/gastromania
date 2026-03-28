@@ -954,6 +954,7 @@ let desktopSidebarPinned = false;
 
 function openDesktopSidebar() {
   if (window.innerWidth <= 768) return;
+  if (desktopSidebarPinned) return;
   desktopSidebar.classList.add('open');
 }
 
@@ -966,7 +967,9 @@ function closeDesktopSidebar() {
 function toggleDesktopSidebar() {
   if (window.innerWidth <= 768) return;
 
-  if (desktopSidebarPinned) {
+  const isOpen = desktopSidebar.classList.contains('open');
+
+  if (isOpen && desktopSidebarPinned) {
     desktopSidebarPinned = false;
     desktopSidebar.classList.remove('open');
   } else {
@@ -975,15 +978,8 @@ function toggleDesktopSidebar() {
   }
 }
 
-desktopHoverZone.addEventListener('mouseenter', () => {
-  if (desktopSidebarPinned || window.innerWidth <= 768) return;
-  desktopSidebar.classList.add('open');
-});
-
-desktopSidebar.addEventListener('mouseleave', () => {
-  if (desktopSidebarPinned || window.innerWidth <= 768) return;
-  desktopSidebar.classList.remove('open');
-});
+desktopHoverZone.addEventListener('mouseenter', openDesktopSidebar);
+desktopSidebar.addEventListener('mouseleave', closeDesktopSidebar);
 
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
