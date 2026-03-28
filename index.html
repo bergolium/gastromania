@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=beta&libraries=places" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=weekly&libraries=places" async defer></script>
 <style>
   :root {
     --bg: #111111;
@@ -216,7 +216,7 @@
   justify-content: flex-end;
 }
 
-  .sidebar-tab {
+.sidebar-tab {
   width: 18px;
   height: 48px;
   background: var(--surface);
@@ -230,6 +230,9 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .sidebar-tab:hover {
@@ -476,7 +479,7 @@
 <body>
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
-<button class="sidebar-toggle" id="sidebar-toggle" style="-webkit-appearance:none;cursor:pointer;" aria-expanded="false" aria-controls="desktop-sidebar">&#9776;</button>
+<button class="sidebar-toggle" id="sidebar-toggle" style="-webkit-appearance:none;cursor:pointer;" aria-expanded="false" aria-controls="desktop-sidebar" aria-label="Apri elenco locali">&#9776;</button>
 
 <header>
   <div class="brand">
@@ -528,7 +531,7 @@
   <div id="map"></div>
   <button class="sidebar-toggle-desktop" id="sidebar-toggle-desktop" type="button" aria-expanded="false" aria-controls="desktop-sidebar">Sidebar</button>
 <div class="sidebar-hover-zone" id="sidebar-hover-zone">
-  <div class="sidebar-tab">›</div>
+  <button class="sidebar-tab" id="sidebar-tab-desktop" type="button" aria-label="Apri elenco locali" tabindex="-1">›</button>
 </div>
   <div class="sidebar" id="desktop-sidebar">
     <div class="sidebar-header">
@@ -691,6 +694,85 @@ const CAT_ICONS = {
   CAFFE:      "local_cafe",
 };
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+function isGooglePlacesAvailable() {
+  return !!(
+    window.google &&
+    window.google.maps &&
+    typeof window.google.maps.importLibrary === 'function'
+  );
+}
+
+function normalizeExternalUrl(value) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function distanceInMeters(lat1, lng1, lat2, lng2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const R = 6371000;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function selectBestPlaceMatch(places, targetPlace) {
+  if (!Array.isArray(places) || places.length === 0) return null;
+
+  const MAX_DISTANCE_METERS = 250;
+
+  const ranked = places
+    .map(place => {
+      const lat = place.location?.lat;
+      const lng = place.location?.lng;
+
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
+        return null;
+      }
+
+      return {
+        place,
+        distance: distanceInMeters(targetPlace.lat, targetPlace.lng, lat, lng),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance);
+
+  if (ranked.length === 0) return null;
+  if (ranked[0].distance > MAX_DISTANCE_METERS) return null;
+
+  return ranked[0].place;
+}
+
 function makeIcon(color, cat) {
   const icon = CAT_ICONS[cat] || "restaurant";
   return L.divIcon({
@@ -714,8 +796,8 @@ PLACES.forEach((p, i) => {
 
   marker.bindPopup(`
     <div class="popup-inner">
-      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-      <div class="popup-name">${p.name}</div>
+      <div class="popup-cat" style="color:${escapeAttr(color)}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+      <div class="popup-name">${escapeHtml(p.name)}</div>
     </div>
   `, { maxWidth: 260, className: '' });
 
@@ -774,18 +856,31 @@ item.addEventListener('click', () => {
   const realIndex = PLACES.indexOf(p);
   highlightItem(realIndex);
   const target = [p.lat - 0.0008, p.lng];
+
   map.once('moveend', () => {
     openPlacesPopup(markers[realIndex].marker, PLACES[realIndex]);
   });
-  map.flyTo(target, 18, {animate: true, duration: 0.6});
 
-  if (window.innerWidth > 768 && !desktopSidebarPinned) {
+  map.flyTo(target, 18, { animate: true, duration: 0.6 });
+
+  const desktopSidebar = document.getElementById('desktop-sidebar');
+  const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const isPinned = desktopSidebar?.dataset.pinned === 'true';
+
+if (window.innerWidth <= 768) {
+  desktopSidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('open');
+  mobileSidebarToggle.innerHTML = '&#9776;';
+  mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+  mobileSidebarToggle.setAttribute('aria-label', 'Apri elenco locali');
+  return;
+}
+
+  if (!isPinned) {
     desktopSidebar.classList.remove('open');
   }
 });
-    list.appendChild(item);
-  });
-}
 
 function highlightItem(globalIndex) {
   document.querySelectorAll('.place-item').forEach(el => el.classList.remove('highlighted'));
@@ -869,10 +964,12 @@ rebuildSidebar();
 const placesCache = new Map();
 async function openPlacesPopup(marker, p) {
   const color = CAT_COLORS[p.cat];
+  const safeColor = escapeAttr(color);
+  const safeName = escapeHtml(p.name);
   marker.bindPopup(`
     <div class="popup-inner">
-      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-      <div class="popup-name">${p.name}</div>
+      <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+      <div class="popup-name">${safeName}</div>
       <div class="popup-desc popup-loading">⏳ Caricamento...</div>
     </div>
   `, { maxWidth: 260 }).openPopup();
@@ -882,38 +979,56 @@ if (placesCache.has(cacheKey)) {
   return;
 }
 
+  if (!isGooglePlacesAvailable()) {
+    const popupHtml = `
+      <div class="popup-inner">
+        <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+        <div class="popup-name">${safeName}</div>
+      </div>`;
+    placesCache.set(cacheKey, popupHtml);
+    marker.getPopup().setContent(popupHtml);
+    return;
+  }
+
   try {
     await google.maps.importLibrary('places');
     const { Place } = google.maps.places;
     const request = {
       textQuery: p.name + ' Alessandria Italia',
-      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount'],
+      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount','location'],
       locationBias: { lat: p.lat, lng: p.lng },
       language: 'it',
     };
     const { places } = await Place.searchByText(request);
-    if (!places || places.length === 0) {
-  const popupHtml = `
-    <div class="popup-inner">
-      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-      <div class="popup-name">${p.name}</div>
-    </div>`;
-  placesCache.set(cacheKey, popupHtml);
-  marker.getPopup().setContent(popupHtml);
-  return;
-}
-    const place = places[0];
+    const place = selectBestPlaceMatch(places, p);
+
+    if (!place) {
+      const popupHtml = `
+        <div class="popup-inner">
+          <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+          <div class="popup-name">${safeName}</div>
+        </div>`;
+      placesCache.set(cacheKey, popupHtml);
+      marker.getPopup().setContent(popupHtml);
+      return;
+    }
 
 const safeAddr = place.formattedAddress
-  ? place.formattedAddress.replace('<','&lt;').replace('>','&gt;')
+  ? escapeHtml(place.formattedAddress)
   : '';
 
-const addr = safeAddr ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" style="color:#444444;text-decoration:none;">${safeAddr.replace(', Italia','').replace(', Italy','')}</a></div>` : '';
+const addr = safeAddr
+  ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener noreferrer" style="color:#444444;text-decoration:none;">${safeAddr.replace(', Italia','').replace(', Italy','')}</a></div>`
+  : '';
 
-const phone = place.nationalPhoneNumber ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">call</span><a href="tel:${place.nationalPhoneNumber.replace(/[^\d+]/g, '')}">${place.nationalPhoneNumber}</a></div>` : '';
-const safeWeb = place.websiteURI ? encodeURI(place.websiteURI) : '';
+const phone = place.nationalPhoneNumber
+  ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">call</span><a href="tel:${escapeAttr(place.nationalPhoneNumber.replace(/[^\d+]/g, ''))}">${escapeHtml(place.nationalPhoneNumber)}</a></div>`
+  : '';
+const websiteUrl = normalizeExternalUrl(place.websiteURI);
 
-const web = safeWeb ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">language</span><a href="${safeWeb}" target="_blank">${new URL(safeWeb).hostname.replace('www.','')}</a></div>` : '';
+const web = websiteUrl
+  ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">language</span><a href="${escapeAttr(websiteUrl.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteUrl.hostname.replace('www.',''))}</a></div>`
+  : '';
 const rating = place.rating ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">star</span>${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
 let hours = '';
 if (place.regularOpeningHours?.periods?.length) {
@@ -951,8 +1066,8 @@ if (place.regularOpeningHours?.periods?.length) {
 }
     const popupHtml = `
   <div class="popup-inner">
-    <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-    <div class="popup-name">${p.name}</div>
+    <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+    <div class="popup-name">${safeName}</div>
     <div class="popup-details">${rating}${hours}${addr}${phone}${web}</div>
   </div>`;
 placesCache.set(cacheKey, popupHtml);
@@ -961,8 +1076,8 @@ marker.getPopup().setContent(popupHtml);
   console.error('Places error:', e);
   const popupHtml = `
     <div class="popup-inner">
-      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
-      <div class="popup-name">${p.name}</div>
+      <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+      <div class="popup-name">${safeName}</div>
     </div>`;
   placesCache.set(cacheKey, popupHtml);
   marker.getPopup().setContent(popupHtml);
@@ -981,10 +1096,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const desktopSidebar = document.getElementById('desktop-sidebar');
   const desktopHoverZone = document.getElementById('sidebar-hover-zone');
   const desktopSidebarToggle = document.getElementById('sidebar-toggle-desktop');
+  const desktopSidebarTab = document.getElementById('sidebar-tab-desktop');
   const mobileSidebarToggle = document.getElementById('sidebar-toggle');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
   let desktopSidebarPinned = false;
-
+  desktopSidebar.dataset.pinned = 'false';
   function openDesktopSidebar() {
     if (window.innerWidth <= 768) return;
     if (desktopSidebarPinned) return;
@@ -998,50 +1114,58 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleDesktopSidebar() {
-    if (window.innerWidth <= 768) return;
+  if (window.innerWidth <= 768) return;
 
-    const isOpen = desktopSidebar.classList.contains('open');
+  const isOpen = desktopSidebar.classList.contains('open');
 
-    if (isOpen && desktopSidebarPinned) {
-      desktopSidebarPinned = false;
-      desktopSidebar.classList.remove('open');
-      desktopSidebarToggle.setAttribute('aria-expanded', 'false');
-    } else {
-      desktopSidebarPinned = true;
-      desktopSidebar.classList.add('open');
-      desktopSidebarToggle.setAttribute('aria-expanded', 'true');
-    }
+  if (isOpen && desktopSidebarPinned) {
+    desktopSidebarPinned = false;
+    desktopSidebar.dataset.pinned = 'false';
+    desktopSidebar.classList.remove('open');
+    desktopSidebarToggle.setAttribute('aria-expanded', 'false');
+  } else {
+    desktopSidebarPinned = true;
+    desktopSidebar.dataset.pinned = 'true';
+    desktopSidebar.classList.add('open');
+    desktopSidebarToggle.setAttribute('aria-expanded', 'true');
   }
+}
 
-  function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const btn = document.getElementById('sidebar-toggle');
-    const isOpen = sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
-    btn.innerHTML = isOpen ? '&times;' : '&#9776;';
-    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-  }
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('sidebar-toggle');
+  const isOpen = sidebar.classList.toggle('open');
 
-  function closeSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const btn = document.getElementById('sidebar-toggle');
-    sidebar.classList.remove('open');
-    overlay.classList.remove('open');
-    btn.innerHTML = '&#9776;';
-    btn.setAttribute('aria-expanded', 'false');
-  }
+  overlay.classList.toggle('open');
+  btn.innerHTML = isOpen ? '&times;' : '&#9776;';
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  btn.setAttribute('aria-label', isOpen ? 'Chiudi elenco locali' : 'Apri elenco locali');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('sidebar-toggle');
+
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+  btn.innerHTML = '&#9776;';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-label', 'Apri elenco locali');
+}
 
   desktopHoverZone.addEventListener('mouseenter', openDesktopSidebar);
   desktopSidebar.addEventListener('mouseleave', closeDesktopSidebar);
   desktopSidebarToggle.addEventListener('click', toggleDesktopSidebar);
+  desktopSidebarTab.addEventListener('click', openDesktopSidebar);
   mobileSidebarToggle.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
 
   window.addEventListener('resize', () => {
     if (window.innerWidth <= 768) {
       desktopSidebarPinned = false;
+      desktopSidebar.dataset.pinned = 'false';
       desktopSidebar.classList.remove('open');
       desktopSidebarToggle.setAttribute('aria-expanded', 'false');
     } else {
@@ -1052,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.setAttribute('aria-expanded', 'false');
       desktopSidebar.classList.remove('open');
       desktopSidebarPinned = false;
+      desktopSidebar.dataset.pinned = 'false';
       desktopSidebarToggle.setAttribute('aria-expanded', 'false');
     }
   });
