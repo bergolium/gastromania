@@ -895,9 +895,10 @@ logoEl.src = 'logo.png';
 logoEl.onload = () => { logoEl.style.display = 'block'; };
 logoEl.onerror = () => { logoEl.style.display = 'none'; };
 
-// Init
-syncAllBtn();
-rebuildSidebar();
+document.addEventListener('DOMContentLoaded', () => {
+  syncAllBtn();
+  rebuildSidebar();
+});
 </script>
 
 <script>
