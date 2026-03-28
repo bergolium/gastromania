@@ -159,6 +159,7 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
   }
 
   /* MAP */
@@ -168,15 +169,53 @@
   }
 
   /* SIDEBAR */
-  .sidebar {
-    width: 260px;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.sidebar-toggle-desktop {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1100;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(28,28,28,0.92);
+  color: var(--cream);
+  font-family: 'Titillium Web', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sidebar-hover-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 1240;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
 
   .sidebar-header {
     padding: 14px 16px 10px;
@@ -305,7 +344,7 @@
   footer span {
     display: block;
     font-size: 10px;
-    line-height: 14px;
+    line-height: 1;
     color: var(--muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -403,7 +442,12 @@
     .sidebar-overlay.open { display: block; }
     .sidebar-toggle { display: flex; }
     footer { display: none; }
-  }
+  
+    .sidebar-toggle-desktop,
+    .sidebar-hover-zone {
+    display: none;
+    }
+}
 </style>
 </head>
 <body>
@@ -459,7 +503,9 @@
 
 <div class="main">
   <div id="map"></div>
-  <div class="sidebar">
+  <button class="sidebar-toggle-desktop" id="sidebar-toggle-desktop" onclick="toggleDesktopSidebar()">Locali</button>
+  <div class="sidebar-hover-zone" id="sidebar-hover-zone"></div>
+  <div class="sidebar" id="desktop-sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title">Locali / Places</div>
       <div class="sidebar-count" id="sidebar-count">— locali</div>
@@ -710,14 +756,18 @@ if (activeFilters.size !== 1) {
 
 item.appendChild(dot);
 item.appendChild(wrap);
-    item.addEventListener('click', () => {
-      highlightItem(globalIndex);
-      const target = [p.lat - 0.0008, p.lng];
-      map.once('moveend', () => {
-        openPlacesPopup(markers[globalIndex].marker, PLACES[globalIndex]);
-      });
-      map.flyTo(target, 18, {animate: true, duration: 0.6});
-    });
+item.addEventListener('click', () => {
+  highlightItem(globalIndex);
+  const target = [p.lat - 0.0008, p.lng];
+  map.once('moveend', () => {
+    openPlacesPopup(markers[globalIndex].marker, PLACES[globalIndex]);
+  });
+  map.flyTo(target, 18, {animate: true, duration: 0.6});
+
+  if (window.innerWidth > 768 && !desktopSidebarPinned) {
+    desktopSidebar.classList.remove('open');
+  }
+});
     list.appendChild(item);
   });
 }
@@ -898,6 +948,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 // Mobile sidebar toggle
+const desktopSidebar = document.getElementById('desktop-sidebar');
+const desktopHoverZone = document.getElementById('sidebar-hover-zone');
+let desktopSidebarPinned = false;
+
+function openDesktopSidebar() {
+  if (window.innerWidth <= 768) return;
+  desktopSidebar.classList.add('open');
+}
+
+function closeDesktopSidebar() {
+  if (window.innerWidth <= 768) return;
+  if (desktopSidebarPinned) return;
+  desktopSidebar.classList.remove('open');
+}
+
+function toggleDesktopSidebar() {
+  if (window.innerWidth <= 768) return;
+  desktopSidebarPinned = !desktopSidebarPinned;
+  desktopSidebar.classList.toggle('open', desktopSidebarPinned);
+}
+
+desktopHoverZone.addEventListener('mouseenter', () => {
+  if (desktopSidebarPinned || window.innerWidth <= 768) return;
+  desktopSidebar.classList.add('open');
+});
+
+desktopSidebar.addEventListener('mouseleave', () => {
+  if (desktopSidebarPinned || window.innerWidth <= 768) return;
+  desktopSidebar.classList.remove('open');
+});
+
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebar-overlay');
