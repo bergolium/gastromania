@@ -965,8 +965,14 @@ function closeDesktopSidebar() {
 
 function toggleDesktopSidebar() {
   if (window.innerWidth <= 768) return;
-  desktopSidebarPinned = !desktopSidebarPinned;
-  desktopSidebar.classList.toggle('open', desktopSidebarPinned);
+
+  if (desktopSidebarPinned) {
+    desktopSidebarPinned = false;
+    desktopSidebar.classList.remove('open');
+  } else {
+    desktopSidebarPinned = true;
+    desktopSidebar.classList.add('open');
+  }
 }
 
 desktopHoverZone.addEventListener('mouseenter', () => {
