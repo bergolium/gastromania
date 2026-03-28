@@ -209,10 +209,33 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 6px;
+  width: 10px;
   z-index: 1240;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
+  .sidebar-tab {
+  width: 18px;
+  height: 48px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  color: var(--muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-tab:hover {
+  color: var(--cream);
+  background: #262626;
+}
 .sidebar.open {
   transform: translateX(0);
 }
@@ -503,8 +526,10 @@
 
 <div class="main">
   <div id="map"></div>
-  <button class="sidebar-toggle-desktop" id="sidebar-toggle-desktop" onclick="toggleDesktopSidebar()">Locali</button>
-  <div class="sidebar-hover-zone" id="sidebar-hover-zone"></div>
+  <button class="sidebar-toggle-desktop" id="sidebar-toggle-desktop" onclick="toggleDesktopSidebar()">Sidebar</button>
+  <div class="sidebar-hover-zone" id="sidebar-hover-zone">
+  <div class="sidebar-tab">›</div>
+  </div>
   <div class="sidebar" id="desktop-sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title">Locali / Places</div>
