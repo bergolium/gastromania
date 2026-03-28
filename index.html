@@ -46,15 +46,14 @@
   header {
     background: var(--bg);
     border-bottom: 1px solid var(--border);
-    padding: 0 8px;
+    padding: 4px 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    height: 36px;
+    gap: 12px;
+    min-height: 64px;
     flex-shrink: 0;
     position: relative;
     z-index: 1000;
-    overflow: hidden;
   }
 
   .brand {
@@ -71,7 +70,7 @@
   }
   .brand-city {
     font-family: 'Titillium Web', sans-serif;
-    font-size: 7px;
+    font-size: 11px;
     font-weight: 300;
     letter-spacing: 0.22em;
     color: #aaaaaa;
@@ -79,14 +78,28 @@
   }
   .brand-name {
     font-family: 'Titillium Web', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 400;
     color: var(--cream);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
   }
   .brand-tagline {
-    display: none;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-top: 1px;
+    line-height: 1;
   }
+  .brand-icon {
+  font-family: 'Material Symbols Rounded';
+  font-size: 32px;
+  color: var(--cream);
+  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
   /* FILTERS */
   .filters {
@@ -146,6 +159,7 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
   }
 
   /* MAP */
@@ -155,15 +169,76 @@
   }
 
   /* SIDEBAR */
-  .sidebar {
-    width: 260px;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.sidebar-toggle-desktop {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1300;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(28,28,28,0.92);
+  color: var(--cream);
+  font-family: 'Titillium Web', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sidebar-hover-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 1240;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+  .sidebar-tab {
+  width: 18px;
+  height: 48px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  color: var(--muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-tab:hover {
+  color: var(--cream);
+  background: #262626;
+}
+.sidebar.open {
+  transform: translateX(0);
+}
 
   .sidebar-header {
     padding: 14px 16px 10px;
@@ -280,20 +355,19 @@
 
   /* footer */
   footer {
-    height: 14px;
+    height: 26px;
     background: var(--bg);
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 6px;
+    padding: 0 16px;
     flex-shrink: 0;
-    overflow: hidden;
   }
   footer span {
     display: block;
-    font-size: 7px;
-    line-height: 14px;
+    font-size: 10px;
+    line-height: 1;
     color: var(--muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -351,13 +425,17 @@
       padding: 10px 12px 6px;
       gap: 8px;
     }
-    .brand-name { font-size: 18px; }
-    .brand-tagline { display: none; }
-    .filters {
-      width: 100%;
-      gap: 5px;
-      padding: 2px 0 4px;
-    }
+  .brand-name { font-size: 16px; }
+  .brand-tagline {
+    font-size: 8px;
+    display: block;
+    line-height: 1;
+  }
+  .filters {
+    width: 100%;
+    gap: 5px;
+    padding: 2px 0 2px;
+  }
     .filter-btn {
       font-size: 10px;
       padding: 5px 9px;
@@ -387,21 +465,26 @@
     .sidebar-overlay.open { display: block; }
     .sidebar-toggle { display: flex; }
     footer { display: none; }
-  }
+  
+    .sidebar-toggle-desktop,
+    .sidebar-hover-zone {
+    display: none;
+    }
+}
 </style>
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
-<button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Apri o chiudi la sidebar" aria-expanded="false" style="-webkit-appearance:none;cursor:pointer;">&#9776;</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<button class="sidebar-toggle" id="sidebar-toggle" style="-webkit-appearance:none;cursor:pointer;" aria-expanded="false" aria-controls="desktop-sidebar">&#9776;</button>
 
 <header>
   <div class="brand">
-    <img id="hotel-logo" src="" alt="Hotel Londra Alessandria" style="height:22px;display:none;margin-right:6px;">
+    <span class="brand-icon material-symbols-rounded">room_service</span>
     <div>
       <span class="brand-city">Alessandria</span>
       <span class="brand-name">GASTROMANIA!</span>
-      <span class="brand-tagline">Where to eat and where to drink. According to us.</span>
+      <span class="brand-tagline">where to eat and where to drink. according to us.</span>
     </div>
   </div>
 
@@ -443,7 +526,11 @@
 
 <div class="main">
   <div id="map"></div>
-  <div class="sidebar">
+  <button class="sidebar-toggle-desktop" id="sidebar-toggle-desktop" type="button" aria-expanded="false" aria-controls="desktop-sidebar">Sidebar</button>
+<div class="sidebar-hover-zone" id="sidebar-hover-zone">
+  <div class="sidebar-tab">›</div>
+</div>
+  <div class="sidebar" id="desktop-sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title">Locali / Places</div>
       <div class="sidebar-count" id="sidebar-count">— locali</div>
@@ -556,34 +643,25 @@ const PLACES = [
 
 const CAT_COLORS = {
   RISTORANTI: "#7bc8a4",
-  PIZZA: "#f4907a",
-  PASTICCERIE: "#b89fd4",
-  GELATI: "#7ec8e3",
-  VINO: "#e8849a",
-  BIRRA: "#f5d080",
-  CAFFE: "#7aaed6",
+  PIZZA:      "#f4907a",
+  PASTICCERIE:"#b89fd4",
+  GELATI:     "#7ec8e3",
+  VINO:       "#e8849a",
+  BIRRA:      "#f5d080",
+  CAFFE:      "#7aaed6",
 };
 
 const CAT_LABELS_SHORT = {
   RISTORANTI: "Restaurants",
-  PIZZA: "Pizza · Bread · Pasta",
-  PASTICCERIE: "Pastry Shops",
-  GELATI: "Ice Cream",
-  VINO: "Wine",
-  BIRRA: "Beer",
-  CAFFE: "Caffè · Cocktail",
+  PIZZA:      "Pizza · Bread · Pasta",
+  PASTICCERIE:"Pastry Shops",
+  GELATI:     "Ice Cream",
+  VINO:       "Wine",
+  BIRRA:      "Beer",
+  CAFFE:      "Caffè · Cocktail",
 };
 
-const CAT_ICONS = {
-  RISTORANTI: "restaurant",
-  PIZZA: "local_pizza",
-  PASTICCERIE: "cake",
-  GELATI: "icecream",
-  VINO: "wine_bar",
-  BIRRA: "sports_bar",
-  CAFFE: "local_cafe",
-};
-
+// Init map
 const map = L.map('map', {
   center: [44.9130, 8.6160],
   zoom: 15,
@@ -598,24 +676,20 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
+// Build markers
 const markers = [];
 const layerGroups = {};
-Object.keys(CAT_COLORS).forEach(cat => {
-  layerGroups[cat] = L.layerGroup().addTo(map);
-});
+Object.keys(CAT_COLORS).forEach(c => layerGroups[c] = L.layerGroup().addTo(map));
 
-const placeListEl = document.getElementById('place-list');
-const sidebarCountEl = document.getElementById('sidebar-count');
-const desktopSidebar = document.getElementById('desktop-sidebar');
-const desktopHoverZone = document.getElementById('sidebar-hover-zone');
-const desktopToggleBtn = document.getElementById('sidebar-toggle-desktop');
-const mobileToggleBtn = document.getElementById('sidebar-toggle');
-const mobileOverlay = document.getElementById('sidebar-overlay');
-const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
-
-const activeFilters = new Set(Object.keys(CAT_COLORS));
-const placesCache = new Map();
-let desktopSidebarPinned = false;
+const CAT_ICONS = {
+  RISTORANTI: "restaurant",
+  PIZZA:      "local_pizza",
+  PASTICCERIE:"cake",
+  GELATI:     "icecream",
+  VINO:       "wine_bar",
+  BIRRA:      "sports_bar",
+  CAFFE:      "local_cafe",
+};
 
 function makeIcon(color, cat) {
   const icon = CAT_ICONS[cat] || "restaurant";
@@ -628,102 +702,89 @@ function makeIcon(color, cat) {
       border:2px solid white;
       display:flex;align-items:center;justify-content:center;
     "><span class="material-symbols-rounded" style="font-size:16px;color:white;line-height:1;user-select:none;">${icon}</span></div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -17],
+    iconSize: [30,30],
+    iconAnchor: [15,15],
+    popupAnchor: [0,-17],
   });
 }
 
-function buildInitialPopupNode(place) {
-  const color = CAT_COLORS[place.cat];
-  const wrapper = document.createElement('div');
-  wrapper.className = 'popup-inner';
+PLACES.forEach((p, i) => {
+  const color = CAT_COLORS[p.cat];
+  const marker = L.marker([p.lat, p.lng], { icon: makeIcon(color, p.cat) });
 
-  const cat = document.createElement('div');
-  cat.className = 'popup-cat';
-  cat.style.color = color;
-  cat.textContent = CAT_LABELS_SHORT[place.cat];
-
-  const name = document.createElement('div');
-  name.className = 'popup-name';
-  name.textContent = place.name;
-
-  wrapper.append(cat, name);
-  return wrapper;
-}
-
-PLACES.forEach((place, index) => {
-  const color = CAT_COLORS[place.cat];
-  const marker = L.marker([place.lat, place.lng], { icon: makeIcon(color, place.cat) });
-
-  marker.bindPopup(buildInitialPopupNode(place), { maxWidth: 260, className: '' });
+  marker.bindPopup(`
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+      <div class="popup-name">${p.name}</div>
+    </div>
+  `, { maxWidth: 260, className: '' });
 
   marker.on('click', () => {
-    highlightItem(index);
-    openPlacesPopup(marker, place);
+    highlightItem(i);
+    openPlacesPopup(marker, p);
   });
-
-  layerGroups[place.cat].addLayer(marker);
-  markers.push({ marker, data: place, index });
+  layerGroups[p.cat].addLayer(marker);
+  markers.push({ marker, data: p, index: i });
 });
 
-function buildList(filterMode) {
-  placeListEl.replaceChildren();
+// Sidebar
+function buildList(filter) {
+  const list = document.getElementById('place-list');
+  list.innerHTML = '';
 
-  let visibleCount = 0;
+  let filtered;
+  if (filter === 'none') {
+    filtered = [];
+  } else if (filter === 'all') {
+    filtered = PLACES;
+  } else if (filter === 'multi') {
+    filtered = PLACES.filter(p => activeFilters.has(p.cat));
+  } else {
+    filtered = PLACES.filter(p => p.cat === filter);
+  }
 
-  PLACES.forEach((place, index) => {
-    const visible =
-      filterMode === 'all' ? true :
-      filterMode === 'none' ? false :
-      filterMode === 'multi' ? activeFilters.has(place.cat) :
-      place.cat === filterMode;
+  document.getElementById('sidebar-count').textContent = `${filtered.length} local${filtered.length !== 1 ? 'i' : 'e'}`;
 
-    if (!visible) return;
-    visibleCount += 1;
-
+  filtered.forEach((p, globalIndex) => {
+    const color = CAT_COLORS[p.cat];
     const item = document.createElement('div');
     item.className = 'place-item';
-    item.id = `item-${index}`;
-
+    item.id = `item-${PLACES.indexOf(p)}`;
     const dot = document.createElement('div');
-    dot.className = 'place-dot';
-    dot.style.background = CAT_COLORS[place.cat];
+dot.className = 'place-dot';
+dot.style.background = color;
 
-    const wrap = document.createElement('div');
+const wrap = document.createElement('div');
 
-    const name = document.createElement('div');
-    name.className = 'place-name';
-    name.textContent = place.name;
-    wrap.appendChild(name);
+const name = document.createElement('div');
+name.className = 'place-name';
+name.textContent = p.name;
+wrap.appendChild(name);
 
-    if (activeFilters.size !== 1) {
-      const cat = document.createElement('div');
-      cat.className = 'place-cat';
-      cat.textContent = CAT_LABELS_SHORT[place.cat];
-      wrap.appendChild(cat);
-    }
+if (activeFilters.size !== 1) {
+  const cat = document.createElement('div');
+  cat.className = 'place-cat';
+  cat.textContent = CAT_LABELS_SHORT[p.cat];
+  wrap.appendChild(cat);
+}
 
-    item.append(dot, wrap);
-
-    item.addEventListener('click', () => {
-      highlightItem(index);
-      const target = [place.lat - 0.0008, place.lng];
-      map.once('moveend', () => {
-        openPlacesPopup(markers[index].marker, PLACES[index]);
-      });
-      map.flyTo(target, 18, { animate: true, duration: 0.6 });
-
-      if (window.innerWidth > 768 && !desktopSidebarPinned) {
-        desktopSidebar.classList.remove('open');
-        updateSidebarControls();
-      }
-    });
-
-    placeListEl.appendChild(item);
+item.appendChild(dot);
+item.appendChild(wrap);
+item.addEventListener('click', () => {
+  const realIndex = PLACES.indexOf(p);
+  highlightItem(realIndex);
+  const target = [p.lat - 0.0008, p.lng];
+  map.once('moveend', () => {
+    openPlacesPopup(markers[realIndex].marker, PLACES[realIndex]);
   });
+  map.flyTo(target, 18, {animate: true, duration: 0.6});
 
-  sidebarCountEl.textContent = `${visibleCount} local${visibleCount !== 1 ? 'i' : 'e'}`;
+  if (window.innerWidth > 768 && !desktopSidebarPinned) {
+    desktopSidebar.classList.remove('open');
+  }
+});
+    list.appendChild(item);
+  });
 }
 
 function highlightItem(globalIndex) {
@@ -735,13 +796,23 @@ function highlightItem(globalIndex) {
   }
 }
 
+// Counts
 const counts = {};
-Object.keys(CAT_COLORS).forEach(cat => { counts[cat] = 0; });
-PLACES.forEach(place => { counts[place.cat] += 1; });
+Object.keys(CAT_COLORS).forEach(c => counts[c] = 0);
+PLACES.forEach(p => counts[p.cat]++);
 document.getElementById('cnt-all').textContent = PLACES.length;
-Object.keys(counts).forEach(cat => {
-  const el = document.getElementById(`cnt-${cat}`);
-  if (el) el.textContent = counts[cat];
+Object.keys(counts).forEach(c => {
+  const el = document.getElementById('cnt-' + c);
+  if (el) el.textContent = counts[c];
+});
+
+// Filter logic
+const activeFilters = new Set(Object.keys(CAT_COLORS));
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterCat(btn.dataset.cat, btn);
+  });
 });
 
 function syncAllBtn() {
@@ -764,185 +835,94 @@ function rebuildSidebar() {
 function filterCat(cat, btn) {
   if (cat === 'all') {
     const allActive = activeFilters.size === Object.keys(CAT_COLORS).length;
-
     if (allActive) {
+      // Tutti attivi → pulisci tutto
       activeFilters.clear();
-      Object.keys(CAT_COLORS).forEach(key => layerGroups[key].remove());
-      document.querySelectorAll('.filter-btn:not(.all)').forEach(button => button.classList.remove('active'));
+      Object.keys(CAT_COLORS).forEach(c => layerGroups[c].remove());
+      document.querySelectorAll('.filter-btn:not(.all)').forEach(b => b.classList.remove('active'));
       btn.classList.remove('active');
     } else {
-      Object.keys(CAT_COLORS).forEach(key => {
-        activeFilters.add(key);
-        layerGroups[key].addTo(map);
+      // Attiva tutte le categorie
+      Object.keys(CAT_COLORS).forEach(c => {
+        activeFilters.add(c);
+        layerGroups[c].addTo(map);
       });
-      document.querySelectorAll('.filter-btn:not(.all)').forEach(button => button.classList.add('active'));
+      document.querySelectorAll('.filter-btn:not(.all)').forEach(b => b.classList.add('active'));
       btn.classList.add('active');
     }
   } else {
-    if (activeFilters.has(cat)) {
-      activeFilters.delete(cat);
-      layerGroups[cat].remove();
-      btn.classList.remove('active');
-    } else {
-      activeFilters.add(cat);
-      layerGroups[cat].addTo(map);
-      btn.classList.add('active');
-    }
-
-    syncAllBtn();
+  if (activeFilters.has(cat)) {
+    activeFilters.delete(cat);
+    layerGroups[cat].remove();
+    btn.classList.remove('active');
+  } else {
+    activeFilters.add(cat);
+    layerGroups[cat].addTo(map);
+    btn.classList.add('active');
   }
 
-  rebuildSidebar();
+  syncAllBtn();
+}
+rebuildSidebar();
 }
 
-function buildPopupShell(place, bodyNode) {
-  const color = CAT_COLORS[place.cat];
-  const wrapper = document.createElement('div');
-  wrapper.className = 'popup-inner';
-
-  const cat = document.createElement('div');
-  cat.className = 'popup-cat';
-  cat.style.color = color;
-  cat.textContent = CAT_LABELS_SHORT[place.cat];
-
-  const name = document.createElement('div');
-  name.className = 'popup-name';
-  name.textContent = place.name;
-
-  wrapper.append(cat, name);
-
-  if (bodyNode) wrapper.appendChild(bodyNode);
-  return wrapper;
+const placesCache = new Map();
+async function openPlacesPopup(marker, p) {
+  const color = CAT_COLORS[p.cat];
+  marker.bindPopup(`
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+      <div class="popup-name">${p.name}</div>
+      <div class="popup-desc popup-loading">⏳ Caricamento...</div>
+    </div>
+  `, { maxWidth: 260 }).openPopup();
+  const cacheKey = `${p.name}|${p.lat}|${p.lng}`;
+if (placesCache.has(cacheKey)) {
+  marker.getPopup().setContent(placesCache.get(cacheKey));
+  return;
 }
 
-function buildLoadingPopup(place) {
-  const desc = document.createElement('div');
-  desc.className = 'popup-desc popup-loading';
-  desc.textContent = '⏳ Caricamento...';
-  return buildPopupShell(place, desc);
+  try {
+    await google.maps.importLibrary('places');
+    const { Place } = google.maps.places;
+    const request = {
+      textQuery: p.name + ' Alessandria Italia',
+      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount'],
+      locationBias: { lat: p.lat, lng: p.lng },
+      language: 'it',
+    };
+    const { places } = await Place.searchByText(request);
+    if (!places || places.length === 0) {
+  const popupHtml = `
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+      <div class="popup-name">${p.name}</div>
+    </div>`;
+  placesCache.set(cacheKey, popupHtml);
+  marker.getPopup().setContent(popupHtml);
+  return;
 }
+    const place = places[0];
 
-function buildSimplePopup(place) {
-  return buildPopupShell(place, null);
-}
+const safeAddr = place.formattedAddress
+  ? place.formattedAddress.replace('<','&lt;').replace('>','&gt;')
+  : '';
 
-function buildDetailsPopup(place, data) {
-  const details = document.createElement('div');
-  details.className = 'popup-details';
+const addr = safeAddr ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" style="color:#444444;text-decoration:none;">${safeAddr.replace(', Italia','').replace(', Italy','')}</a></div>` : '';
 
-  if (typeof data.rating === 'number') {
-    const row = document.createElement('div');
-    row.className = 'popup-row';
+const phone = place.nationalPhoneNumber ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">call</span><a href="tel:${place.nationalPhoneNumber.replace(/[^\d+]/g, '')}">${place.nationalPhoneNumber}</a></div>` : '';
+const safeWeb = place.websiteURI ? encodeURI(place.websiteURI) : '';
 
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.style.fontSize = '13px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '4px';
-    icon.textContent = 'star';
-
-    row.appendChild(icon);
-    row.append(`${data.rating}`);
-
-    if (typeof data.userRatingCount === 'number') {
-      const count = document.createElement('span');
-      count.style.color = 'var(--muted)';
-      count.textContent = ` (${data.userRatingCount} recensioni)`;
-      row.appendChild(count);
-    }
-
-    details.appendChild(row);
-  }
-
-  if (typeof data.isOpen === 'boolean') {
-    const row = document.createElement('div');
-    row.className = `popup-row popup-hours ${data.isOpen ? 'open' : 'closed'}`;
-
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.style.fontSize = '13px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '4px';
-    icon.textContent = data.isOpen ? 'check_circle' : 'cancel';
-
-    row.append(icon, data.isOpen ? 'Aperto ora' : 'Chiuso ora');
-    details.appendChild(row);
-  }
-
-  if (data.addressText && data.directionsHref) {
-    const row = document.createElement('div');
-    row.className = 'popup-row';
-
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.style.fontSize = '13px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '4px';
-    icon.textContent = 'location_on';
-
-    const link = document.createElement('a');
-    link.href = data.directionsHref;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.style.color = '#444444';
-    link.style.textDecoration = 'none';
-    link.textContent = data.addressText;
-
-    row.append(icon, link);
-    details.appendChild(row);
-  }
-
-  if (data.phoneText && data.phoneHref) {
-    const row = document.createElement('div');
-    row.className = 'popup-row';
-
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.style.fontSize = '13px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '4px';
-    icon.textContent = 'call';
-
-    const link = document.createElement('a');
-    link.href = data.phoneHref;
-    link.textContent = data.phoneText;
-
-    row.append(icon, link);
-    details.appendChild(row);
-  }
-
-  if (data.websiteHref && data.websiteLabel) {
-    const row = document.createElement('div');
-    row.className = 'popup-row';
-
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.style.fontSize = '13px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '4px';
-    icon.textContent = 'language';
-
-    const link = document.createElement('a');
-    link.href = data.websiteHref;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = data.websiteLabel;
-
-    row.append(icon, link);
-    details.appendChild(row);
-  }
-
-  return buildPopupShell(place, details.children.length ? details : null);
-}
-
-function computeOpenState(periods) {
-  if (!Array.isArray(periods) || periods.length === 0) return null;
-
+const web = safeWeb ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">language</span><a href="${safeWeb}" target="_blank">${new URL(safeWeb).hostname.replace('www.','')}</a></div>` : '';
+const rating = place.rating ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">star</span>${place.rating} <span style="color:var(--muted)">(${place.userRatingCount} recensioni)</span></div>` : '';
+let hours = '';
+if (place.regularOpeningHours?.periods?.length) {
   const now = new Date();
   const nowDay = now.getDay();
   const nowMinutes = nowDay * 1440 + now.getHours() * 60 + now.getMinutes();
+  let isOpen = false;
 
-  for (const period of periods) {
+  for (const period of place.regularOpeningHours.periods) {
     if (period.open?.day == null || period.open?.hour == null || period.open?.minute == null) continue;
 
     const openMinutes = period.open.day * 1440 + period.open.hour * 60 + period.open.minute;
@@ -954,180 +934,128 @@ function computeOpenState(periods) {
       closeMinutes = openMinutes + 1440;
     }
 
-    if (closeMinutes <= openMinutes) closeMinutes += 7 * 1440;
+    if (closeMinutes <= openMinutes) {
+      closeMinutes += 7 * 1440;
+    }
 
     if (
       (nowMinutes >= openMinutes && nowMinutes <= closeMinutes) ||
       (nowMinutes + 7 * 1440 >= openMinutes && nowMinutes + 7 * 1440 <= closeMinutes)
     ) {
-      return true;
+      isOpen = true;
+      break;
     }
   }
 
-  return false;
+  hours = `<div class="popup-row popup-hours ${isOpen ? 'open' : 'closed'}"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">${isOpen ? 'check_circle' : 'cancel'}</span>${isOpen ? 'Aperto ora' : 'Chiuso ora'}</div>`;
 }
-
-function normalizePlaceDetails(place, source) {
-  let websiteLabel = '';
-  if (source.websiteURI) {
-    try {
-      websiteLabel = new URL(source.websiteURI).hostname.replace(/^www\./, '');
-    } catch {
-      websiteLabel = source.websiteURI;
-    }
-  }
-
-  return {
-    rating: typeof source.rating === 'number' ? source.rating : null,
-    userRatingCount: typeof source.userRatingCount === 'number' ? source.userRatingCount : null,
-    isOpen: computeOpenState(source.regularOpeningHours?.periods),
-    addressText: source.formattedAddress
-      ? source.formattedAddress.replace(', Italia', '').replace(', Italy', '')
-      : '',
-    directionsHref: source.formattedAddress
-      ? `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`
-      : '',
-    phoneText: source.nationalPhoneNumber || '',
-    phoneHref: source.nationalPhoneNumber
-      ? `tel:${source.nationalPhoneNumber.replace(/[^\d+]/g, '')}`
-      : '',
-    websiteHref: source.websiteURI || '',
-    websiteLabel,
-  };
+    const popupHtml = `
+  <div class="popup-inner">
+    <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+    <div class="popup-name">${p.name}</div>
+    <div class="popup-details">${rating}${hours}${addr}${phone}${web}</div>
+  </div>`;
+placesCache.set(cacheKey, popupHtml);
+marker.getPopup().setContent(popupHtml);
+  } catch(e) {
+  console.error('Places error:', e);
+  const popupHtml = `
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:${color}">${CAT_LABELS_SHORT[p.cat]}</div>
+      <div class="popup-name">${p.name}</div>
+    </div>`;
+  placesCache.set(cacheKey, popupHtml);
+  marker.getPopup().setContent(popupHtml);
 }
-
-async function openPlacesPopup(marker, place) {
-  marker.bindPopup(buildLoadingPopup(place), { maxWidth: 260, className: '' }).openPopup();
-
-  const cacheKey = `${place.name}|${place.lat}|${place.lng}`;
-  if (placesCache.has(cacheKey)) {
-    marker.getPopup().setContent(buildDetailsPopup(place, placesCache.get(cacheKey)));
-    return;
-  }
-
-  try {
-    await google.maps.importLibrary('places');
-    const { Place } = google.maps.places;
-
-    const request = {
-      textQuery: `${place.name} Alessandria Italia`,
-      fields: [
-        'displayName',
-        'formattedAddress',
-        'nationalPhoneNumber',
-        'websiteURI',
-        'regularOpeningHours',
-        'rating',
-        'userRatingCount'
-      ],
-      locationBias: { lat: place.lat, lng: place.lng },
-      language: 'it',
-    };
-
-    const { places } = await Place.searchByText(request);
-
-    if (!places || places.length === 0) {
-      marker.getPopup().setContent(buildSimplePopup(place));
-      return;
-    }
-
-    const details = normalizePlaceDetails(place, places[0]);
-    placesCache.set(cacheKey, details);
-    marker.getPopup().setContent(buildDetailsPopup(place, details));
-  } catch (error) {
-    console.error('Places error:', error);
-    marker.getPopup().setContent(buildSimplePopup(place));
-  }
 }
-
-function updateSidebarControls() {
-  const isDesktop = window.innerWidth > 768;
-  const sidebarOpen = desktopSidebar.classList.contains('open');
-
-  desktopToggleBtn.setAttribute('aria-expanded', String(isDesktop && sidebarOpen));
-  mobileToggleBtn.setAttribute('aria-expanded', String(!isDesktop && sidebarOpen));
-
-  if (!isDesktop) {
-    mobileToggleBtn.innerHTML = sidebarOpen ? '&times;' : '&#9776;';
-  }
-}
-
-function openDesktopSidebar() {
-  if (window.innerWidth <= 768) return;
-  if (desktopSidebarPinned) return;
-  desktopSidebar.classList.add('open');
-  updateSidebarControls();
-}
-
-function closeDesktopSidebar() {
-  if (window.innerWidth <= 768) return;
-  if (desktopSidebarPinned) return;
-  desktopSidebar.classList.remove('open');
-  updateSidebarControls();
-}
-
-function toggleDesktopSidebar() {
-  if (window.innerWidth <= 768) return;
-
-  const isOpen = desktopSidebar.classList.contains('open');
-
-  if (isOpen && desktopSidebarPinned) {
-    desktopSidebarPinned = false;
-    desktopSidebar.classList.remove('open');
-  } else {
-    desktopSidebarPinned = true;
-    desktopSidebar.classList.add('open');
-  }
-
-  updateSidebarControls();
-}
-
-function toggleSidebar() {
-  if (window.innerWidth > 768) return;
-  const isOpen = desktopSidebar.classList.toggle('open');
-  mobileOverlay.classList.toggle('open', isOpen);
-  updateSidebarControls();
-}
-
-function closeSidebar() {
-  if (window.innerWidth > 768) return;
-  desktopSidebar.classList.remove('open');
-  mobileOverlay.classList.remove('open');
-  updateSidebarControls();
-}
-
-function handleViewportChange() {
-  if (window.innerWidth <= 768) {
-    desktopSidebarPinned = false;
-    desktopSidebar.classList.remove('open');
-  } else {
-    mobileOverlay.classList.remove('open');
-    desktopSidebar.classList.remove('open');
-    desktopSidebarPinned = false;
-  }
-  updateSidebarControls();
-}
-
-filterButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    const cat = button.dataset.cat;
-    filterCat(cat, button);
-  });
-});
-
-desktopToggleBtn.addEventListener('click', toggleDesktopSidebar);
-desktopHoverZone.addEventListener('mouseenter', openDesktopSidebar);
-desktopSidebar.addEventListener('mouseleave', closeDesktopSidebar);
-mobileToggleBtn.addEventListener('click', toggleSidebar);
-mobileOverlay.addEventListener('click', closeSidebar);
-window.addEventListener('resize', handleViewportChange);
 
 document.addEventListener('DOMContentLoaded', () => {
   syncAllBtn();
   rebuildSidebar();
-  updateSidebarControls();
 });
 </script>
 
+<script>
+// Mobile sidebar toggle
+(() => {
+  const desktopSidebar = document.getElementById('desktop-sidebar');
+  const desktopHoverZone = document.getElementById('sidebar-hover-zone');
+  const desktopSidebarToggle = document.getElementById('sidebar-toggle-desktop');
+  const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  let desktopSidebarPinned = false;
+
+  function openDesktopSidebar() {
+    if (window.innerWidth <= 768) return;
+    if (desktopSidebarPinned) return;
+    desktopSidebar.classList.add('open');
+  }
+
+  function closeDesktopSidebar() {
+    if (window.innerWidth <= 768) return;
+    if (desktopSidebarPinned) return;
+    desktopSidebar.classList.remove('open');
+  }
+
+  function toggleDesktopSidebar() {
+    if (window.innerWidth <= 768) return;
+
+    const isOpen = desktopSidebar.classList.contains('open');
+
+    if (isOpen && desktopSidebarPinned) {
+      desktopSidebarPinned = false;
+      desktopSidebar.classList.remove('open');
+      desktopSidebarToggle.setAttribute('aria-expanded', 'false');
+    } else {
+      desktopSidebarPinned = true;
+      desktopSidebar.classList.add('open');
+      desktopSidebarToggle.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const btn = document.getElementById('sidebar-toggle');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+    btn.innerHTML = isOpen ? '&times;' : '&#9776;';
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+
+  function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const btn = document.getElementById('sidebar-toggle');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.innerHTML = '&#9776;';
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  desktopHoverZone.addEventListener('mouseenter', openDesktopSidebar);
+  desktopSidebar.addEventListener('mouseleave', closeDesktopSidebar);
+  desktopSidebarToggle.addEventListener('click', toggleDesktopSidebar);
+  mobileSidebarToggle.addEventListener('click', toggleSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth <= 768) {
+      desktopSidebarPinned = false;
+      desktopSidebar.classList.remove('open');
+      desktopSidebarToggle.setAttribute('aria-expanded', 'false');
+    } else {
+      const overlay = document.getElementById('sidebar-overlay');
+      const btn = document.getElementById('sidebar-toggle');
+      overlay.classList.remove('open');
+      btn.innerHTML = '&#9776;';
+      btn.setAttribute('aria-expanded', 'false');
+      desktopSidebar.classList.remove('open');
+      desktopSidebarPinned = false;
+      desktopSidebarToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+})();
+</script>
 </body>
 </html>
