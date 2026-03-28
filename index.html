@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=weekly&libraries=places" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOzqj2X1soVQdtK85tLuN8NbVmneOX_jE&v=beta&libraries=places" async defer></script>
 <style>
   :root {
     --bg: #111111;
@@ -827,60 +827,66 @@ function buildList(filter) {
 
   document.getElementById('sidebar-count').textContent = `${filtered.length} local${filtered.length !== 1 ? 'i' : 'e'}`;
 
-  filtered.forEach((p, globalIndex) => {
+  filtered.forEach((p) => {
     const color = CAT_COLORS[p.cat];
     const item = document.createElement('div');
     item.className = 'place-item';
     item.id = `item-${PLACES.indexOf(p)}`;
+
     const dot = document.createElement('div');
-dot.className = 'place-dot';
-dot.style.background = color;
+    dot.className = 'place-dot';
+    dot.style.background = color;
 
-const wrap = document.createElement('div');
+    const wrap = document.createElement('div');
 
-const name = document.createElement('div');
-name.className = 'place-name';
-name.textContent = p.name;
-wrap.appendChild(name);
+    const name = document.createElement('div');
+    name.className = 'place-name';
+    name.textContent = p.name;
+    wrap.appendChild(name);
 
-if (activeFilters.size !== 1) {
-  const cat = document.createElement('div');
-  cat.className = 'place-cat';
-  cat.textContent = CAT_LABELS_SHORT[p.cat];
-  wrap.appendChild(cat);
-}
+    if (activeFilters.size !== 1) {
+      const cat = document.createElement('div');
+      cat.className = 'place-cat';
+      cat.textContent = CAT_LABELS_SHORT[p.cat];
+      wrap.appendChild(cat);
+    }
 
-item.appendChild(dot);
-item.appendChild(wrap);
-item.addEventListener('click', () => {
-  const realIndex = PLACES.indexOf(p);
-  highlightItem(realIndex);
-  const target = [p.lat - 0.0008, p.lng];
+    item.appendChild(dot);
+    item.appendChild(wrap);
 
-  map.once('moveend', () => {
-    openPlacesPopup(markers[realIndex].marker, PLACES[realIndex]);
+    item.addEventListener('click', () => {
+      const realIndex = PLACES.indexOf(p);
+      highlightItem(realIndex);
+      const target = [p.lat - 0.0008, p.lng];
+
+      map.once('moveend', () => {
+        openPlacesPopup(markers[realIndex].marker, PLACES[realIndex]);
+      });
+
+      map.flyTo(target, 18, { animate: true, duration: 0.6 });
+
+      const desktopSidebar = document.getElementById('desktop-sidebar');
+      const mobileSidebarToggle = document.getElementById('sidebar-toggle');
+      const sidebarOverlay = document.getElementById('sidebar-overlay');
+      const isPinned = desktopSidebar?.dataset.pinned === 'true';
+
+      if (window.innerWidth <= 768) {
+        desktopSidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+        mobileSidebarToggle.innerHTML = '&#9776;';
+        mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+        mobileSidebarToggle.setAttribute('aria-label', 'Apri elenco locali');
+        return;
+      }
+
+      if (!isPinned) {
+        desktopSidebar.classList.remove('open');
+      }
+    });
+
+    list.appendChild(item);
   });
-
-  map.flyTo(target, 18, { animate: true, duration: 0.6 });
-
-  const desktopSidebar = document.getElementById('desktop-sidebar');
-  const mobileSidebarToggle = document.getElementById('sidebar-toggle');
-  const sidebarOverlay = document.getElementById('sidebar-overlay');
-  const isPinned = desktopSidebar?.dataset.pinned === 'true';
-
-if (window.innerWidth <= 768) {
-  desktopSidebar.classList.remove('open');
-  sidebarOverlay.classList.remove('open');
-  mobileSidebarToggle.innerHTML = '&#9776;';
-  mobileSidebarToggle.setAttribute('aria-expanded', 'false');
-  mobileSidebarToggle.setAttribute('aria-label', 'Apri elenco locali');
-  return;
 }
-
-  if (!isPinned) {
-    desktopSidebar.classList.remove('open');
-  }
-});
 
 function highlightItem(globalIndex) {
   document.querySelectorAll('.place-item').forEach(el => el.classList.remove('highlighted'));
