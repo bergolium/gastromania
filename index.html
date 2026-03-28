@@ -752,10 +752,13 @@ function selectBestPlaceMatch(places, targetPlace) {
 
   const ranked = places
     .map(place => {
-      const lat = place.location?.lat;
-      const lng = place.location?.lng;
+      const location = place.location;
+      if (!location) return null;
 
-      if (typeof lat !== 'number' || typeof lng !== 'number') {
+      const lat = typeof location.lat === 'function' ? location.lat() : location.lat;
+      const lng = typeof location.lng === 'function' ? location.lng() : location.lng;
+
+      if (typeof lat !== 'number' || typeof lng !== 'number' || Number.isNaN(lat) || Number.isNaN(lng)) {
         return null;
       }
 
