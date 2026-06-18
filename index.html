@@ -164,7 +164,10 @@
 
   /* MAP */
   #map {
-    flex: 1;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     background: #1a1812;
   }
 
@@ -678,6 +681,14 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 }).addTo(map);
 
 L.control.zoom({ position: 'topleft' }).addTo(map);
+
+// Mantiene la dimensione interna di Leaflet allineata al contenitore.
+// Senza questo, la mappa può restare disegnata solo a metà larghezza,
+// lasciando una fascia scura accanto alla sidebar.
+const refreshMapSize = () => map.invalidateSize();
+window.addEventListener('load', refreshMapSize);
+window.addEventListener('resize', refreshMapSize);
+setTimeout(refreshMapSize, 300);
 
 // Build markers
 const markers = [];
