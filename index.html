@@ -824,6 +824,58 @@ PLACES.forEach((p, i) => {
   markers.push({ marker, data: p, index: i });
 });
 
+// --- HOTEL LONDRA: punto di partenza fisso ---
+const HOTEL = { name: "Hotel Londra", lat: 44.910711, lng: 8.606928 };
+
+const hotelIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:38px;height:38px;
+    background:var(--cream);
+    border-radius:50%;
+    border:3px solid #1a1a1a;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;
+  "><span class="material-symbols-rounded" style="font-size:20px;color:#1a1a1a;line-height:1;user-select:none;">hotel</span></div>`,
+  iconSize: [38, 38],
+  iconAnchor: [19, 19],
+  popupAnchor: [0, -21],
+});
+
+// Aggiunto direttamente alla mappa: sempre visibile, non toccato dai filtri.
+L.marker([HOTEL.lat, HOTEL.lng], { icon: hotelIcon, zIndexOffset: 1000 })
+  .addTo(map)
+  .bindPopup(`
+    <div class="popup-inner">
+      <div class="popup-cat" style="color:#1a1a1a">Punto di partenza · Starting point</div>
+      <div class="popup-name">Hotel Londra</div>
+      <div class="popup-details">
+        <div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span>Corso Felice Cavallotti 51</div>
+      </div>
+    </div>
+  `, { maxWidth: 260 });
+
+// Traccia sulla mappa il percorso a piedi dall'Hotel Londra al locale,
+// usando il servizio gratuito OSRM. Tiene una sola linea per volta.
+let routeLine = null;
+async function drawRouteFromHotel(lat, lng) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/walking/${HOTEL.lng},${HOTEL.lat};${lng},${lat}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.routes || !data.routes.length) return;
+    const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    if (routeLine) map.removeLayer(routeLine);
+    routeLine = L.polyline(coords, {
+      color: '#f0f0f0', weight: 4, opacity: 0.95,
+      dashArray: '1,9', lineCap: 'round',
+    }).addTo(map);
+    map.fitBounds(routeLine.getBounds(), { padding: [70, 70] });
+  } catch (e) {
+    console.error('Route error:', e);
+  }
+}
+
 // Sidebar
 function buildList(filter) {
   const list = document.getElementById('place-list');
@@ -1022,7 +1074,7 @@ if (placesCache.has(cacheKey)) {
     const { Place } = google.maps.places;
     const request = {
       textQuery: p.name + ' Alessandria Italia',
-      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount','location'],
+      fields: ['displayName','formattedAddress','nationalPhoneNumber','websiteURI','regularOpeningHours','rating','userRatingCount','location','businessStatus'],
       locationBias: { lat: p.lat, lng: p.lng },
       language: 'it',
     };
@@ -1039,6 +1091,12 @@ if (placesCache.has(cacheKey)) {
       marker.getPopup().setContent(popupHtml);
       return;
     }
+
+const isPermanentlyClosed = place.businessStatus === 'CLOSED_PERMANENTLY';
+if (isPermanentlyClosed) marker.setOpacity(0.35);
+const closedBadge = isPermanentlyClosed
+  ? `<div class="popup-row" style="color:#f4907a;font-weight:600;"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">block</span>Chiuso definitivamente</div>`
+  : '';
 
 const safeAddr = place.formattedAddress
   ? escapeHtml(place.formattedAddress)
@@ -1095,7 +1153,7 @@ if (place.regularOpeningHours?.periods?.length) {
   <div class="popup-inner">
     <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
     <div class="popup-name">${safeName}</div>
-    <div class="popup-details">${rating}${hours}${addr}${phone}${web}</div>
+    <div class="popup-details">${closedBadge}${rating}${hours}${addr}${phone}${web}<div class="popup-row" style="margin-top:4px;"><a href="#" onclick="drawRouteFromHotel(${p.lat},${p.lng});return false;" style="color:#1a6e4a;text-decoration:none;font-weight:600;"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;margin-right:4px;">route</span>Percorso dall'Hotel Londra</a></div></div>
   </div>`;
 placesCache.set(cacheKey, popupHtml);
 marker.getPopup().setContent(popupHtml);
