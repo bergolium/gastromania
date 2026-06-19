@@ -158,6 +158,7 @@
   .main {
     display: flex;
     flex: 1;
+    width: 100%;
     overflow: hidden;
     position: relative;
   }
@@ -907,7 +908,13 @@ function highlightItem(globalIndex) {
   const el = document.getElementById(`item-${globalIndex}`);
   if (el) {
     el.classList.add('highlighted');
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Solo se la sidebar è aperta: altrimenti l'elemento è fuori schermo
+    // (sidebar traslata a destra) e scrollIntoView fa scrollare la pagina,
+    // spostando la mappa e creando la striscia nera.
+    const sb = document.getElementById('desktop-sidebar');
+    if (sb && sb.classList.contains('open')) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 }
 
