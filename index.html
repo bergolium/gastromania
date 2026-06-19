@@ -843,17 +843,10 @@ const hotelIcon = L.divIcon({
 });
 
 // Aggiunto direttamente alla mappa: sempre visibile, non toccato dai filtri.
-L.marker([HOTEL.lat, HOTEL.lng], { icon: hotelIcon, zIndexOffset: 1000 })
-  .addTo(map)
-  .bindPopup(`
-    <div class="popup-inner">
-      <div class="popup-cat" style="color:#1a1a1a">Punto di partenza · Starting point</div>
-      <div class="popup-name">Hotel Londra</div>
-      <div class="popup-details">
-        <div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span>Corso Felice Cavallotti 51</div>
-      </div>
-    </div>
-  `, { maxWidth: 260 });
+// Cliccandolo prende i dati da Google come gli altri locali (telefono, sito, orari…).
+const hotelMarker = L.marker([HOTEL.lat, HOTEL.lng], { icon: hotelIcon, zIndexOffset: 1000 }).addTo(map);
+const hotelPlace = { name: "Hotel Londra", lat: HOTEL.lat, lng: HOTEL.lng, catLabel: "Hotel", color: "#cccccc", isHotel: true };
+hotelMarker.on('click', () => openPlacesPopup(hotelMarker, hotelPlace));
 
 // Traccia sulla mappa il percorso a piedi dall'Hotel Londra al locale,
 // usando il servizio gratuito OSRM. Tiene una sola linea per volta.
@@ -1042,12 +1035,14 @@ rebuildSidebar();
 
 const placesCache = new Map();
 async function openPlacesPopup(marker, p) {
-  const color = CAT_COLORS[p.cat];
+  const color = CAT_COLORS[p.cat] || p.color || '#cccccc';
   const safeColor = escapeAttr(color);
   const safeName = escapeHtml(p.name);
+  const safeCatLabel = escapeHtml(CAT_LABELS_SHORT[p.cat] || p.catLabel || '');
+  const routeBtn = p.isHotel ? '' : `<div class="popup-row" style="margin-top:4px;"><a href="#" onclick="drawRouteFromHotel(${p.lat},${p.lng});return false;" style="color:#1a6e4a;text-decoration:none;font-weight:600;"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;margin-right:4px;">route</span>Percorso dall'Hotel Londra</a></div>`;
   marker.bindPopup(`
     <div class="popup-inner">
-      <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+      <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
       <div class="popup-name">${safeName}</div>
       <div class="popup-desc popup-loading">⏳ Caricamento...</div>
     </div>
@@ -1061,7 +1056,7 @@ if (placesCache.has(cacheKey)) {
   if (!isGooglePlacesAvailable()) {
     const popupHtml = `
       <div class="popup-inner">
-        <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+        <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
         <div class="popup-name">${safeName}</div>
       </div>`;
     placesCache.set(cacheKey, popupHtml);
@@ -1084,7 +1079,7 @@ if (placesCache.has(cacheKey)) {
     if (!place) {
       const popupHtml = `
         <div class="popup-inner">
-          <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+          <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
           <div class="popup-name">${safeName}</div>
         </div>`;
       placesCache.set(cacheKey, popupHtml);
@@ -1151,9 +1146,9 @@ if (place.regularOpeningHours?.periods?.length) {
 }
     const popupHtml = `
   <div class="popup-inner">
-    <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+    <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
     <div class="popup-name">${safeName}</div>
-    <div class="popup-details">${closedBadge}${rating}${hours}${addr}${phone}${web}<div class="popup-row" style="margin-top:4px;"><a href="#" onclick="drawRouteFromHotel(${p.lat},${p.lng});return false;" style="color:#1a6e4a;text-decoration:none;font-weight:600;"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;margin-right:4px;">route</span>Percorso dall'Hotel Londra</a></div></div>
+    <div class="popup-details">${closedBadge}${rating}${hours}${addr}${phone}${web}${routeBtn}</div>
   </div>`;
 placesCache.set(cacheKey, popupHtml);
 marker.getPopup().setContent(popupHtml);
@@ -1161,7 +1156,7 @@ marker.getPopup().setContent(popupHtml);
   console.error('Places error:', e);
   const popupHtml = `
     <div class="popup-inner">
-      <div class="popup-cat" style="color:${safeColor}">${escapeHtml(CAT_LABELS_SHORT[p.cat])}</div>
+      <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
       <div class="popup-name">${safeName}</div>
     </div>`;
   placesCache.set(cacheKey, popupHtml);
