@@ -846,6 +846,12 @@ const hotelIcon = L.divIcon({
 // Cliccandolo prende i dati da Google come gli altri locali (telefono, sito, orari…).
 const hotelMarker = L.marker([HOTEL.lat, HOTEL.lng], { icon: hotelIcon, zIndexOffset: 1000 }).addTo(map);
 const hotelPlace = { name: "Hotel Londra", lat: HOTEL.lat, lng: HOTEL.lng, catLabel: "Hotel", color: "#cccccc", isHotel: true };
+hotelMarker.bindPopup(`
+  <div class="popup-inner">
+    <div class="popup-cat" style="color:#cccccc">Hotel</div>
+    <div class="popup-name">Hotel Londra</div>
+  </div>
+`, { maxWidth: 260, className: '' });
 hotelMarker.on('click', () => openPlacesPopup(hotelMarker, hotelPlace));
 
 // Traccia sulla mappa il percorso a piedi dall'Hotel Londra al locale,
@@ -860,8 +866,8 @@ async function drawRouteFromHotel(lat, lng) {
     const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
     if (routeLine) map.removeLayer(routeLine);
     routeLine = L.polyline(coords, {
-      color: '#f0f0f0', weight: 4, opacity: 0.95,
-      dashArray: '1,9', lineCap: 'round',
+      color: '#111111', weight: 5, opacity: 0.95,
+      dashArray: '1,8', lineCap: 'round',
     }).addTo(map);
     map.fitBounds(routeLine.getBounds(), { padding: [70, 70] });
   } catch (e) {
@@ -1040,6 +1046,7 @@ async function openPlacesPopup(marker, p) {
   const safeName = escapeHtml(p.name);
   const safeCatLabel = escapeHtml(CAT_LABELS_SHORT[p.cat] || p.catLabel || '');
   const routeBtn = p.isHotel ? '' : `<div class="popup-row" style="margin-top:4px;"><a href="#" onclick="drawRouteFromHotel(${p.lat},${p.lng});return false;" style="color:#1a6e4a;text-decoration:none;font-weight:600;"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;margin-right:4px;">route</span>Percorso dall'Hotel Londra</a></div>`;
+  const navBtn = `<div class="popup-row" style="margin-top:4px;"><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener noreferrer" style="color:#2a6fb0;text-decoration:none;font-weight:600;"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;margin-right:4px;">navigation</span>Naviga su Google Maps</a></div>`;
   marker.bindPopup(`
     <div class="popup-inner">
       <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
@@ -1098,7 +1105,7 @@ const safeAddr = place.formattedAddress
   : '';
 
 const addr = safeAddr
-  ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener noreferrer" style="color:#444444;text-decoration:none;">${safeAddr.replace(', Italia','').replace(', Italy','')}</a></div>`
+  ? `<div class="popup-row"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;">location_on</span>${safeAddr.replace(', Italia','').replace(', Italy','')}</div>`
   : '';
 
 const phone = place.nationalPhoneNumber
@@ -1148,7 +1155,7 @@ if (place.regularOpeningHours?.periods?.length) {
   <div class="popup-inner">
     <div class="popup-cat" style="color:${safeColor}">${safeCatLabel}</div>
     <div class="popup-name">${safeName}</div>
-    <div class="popup-details">${closedBadge}${rating}${hours}${addr}${phone}${web}${routeBtn}</div>
+    <div class="popup-details">${closedBadge}${rating}${hours}${addr}${phone}${web}${routeBtn}${navBtn}</div>
   </div>`;
 placesCache.set(cacheKey, popupHtml);
 marker.getPopup().setContent(popupHtml);
