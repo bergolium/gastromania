@@ -816,7 +816,10 @@ PLACES.forEach((p, i) => {
     </div>
   `, { maxWidth: 260, className: '' });
 
+  // Disattivo l'apertura automatica di Leaflet: gestiamo noi il toggle.
+  marker.off('click', marker._openPopup, marker);
   marker.on('click', () => {
+    if (marker.isPopupOpen()) { marker.closePopup(); return; }
     highlightItem(i);
     openPlacesPopup(marker, p);
   });
@@ -852,7 +855,11 @@ hotelMarker.bindPopup(`
     <div class="popup-name">Hotel Londra</div>
   </div>
 `, { maxWidth: 260, className: '' });
-hotelMarker.on('click', () => openPlacesPopup(hotelMarker, hotelPlace));
+hotelMarker.off('click', hotelMarker._openPopup, hotelMarker);
+hotelMarker.on('click', () => {
+  if (hotelMarker.isPopupOpen()) { hotelMarker.closePopup(); return; }
+  openPlacesPopup(hotelMarker, hotelPlace);
+});
 
 // Traccia sulla mappa il percorso a piedi dall'Hotel Londra al locale,
 // usando il servizio gratuito OSRM. Tiene una sola linea per volta.
@@ -874,6 +881,15 @@ async function drawRouteFromHotel(lat, lng) {
     console.error('Route error:', e);
   }
 }
+
+// Quando si chiude il popup di un locale (X, riclick o apertura di un altro),
+// la linea del percorso sparisce dalla mappa.
+map.on('popupclose', () => {
+  if (routeLine) {
+    map.removeLayer(routeLine);
+    routeLine = null;
+  }
+});
 
 // Sidebar
 function buildList(filter) {
